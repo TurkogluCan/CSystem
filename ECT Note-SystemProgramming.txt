@@ -1,0 +1,175 @@
+BIOS: 'Basic Input Output System'den kısaltılan BIOS, silinmeyen bellekte (EEPROM) bulunan, donanımla haberleşmeyi sağlayan, ilkel kodların bulunduğu bölümdür. Donanımla haberşleşmek için assembly düzeydeki kodların bulunduğu bölüm.
+
+CPU'ya RAM ve ROM bağlıdır. CPU güç kesildikten sorna çalışmaya başladığında nereden hangi satırdan çalışmaya başalayacağını ROM'dan alır. Başlangıç ayarlarını ROM'dan alır.
+
+Translater: Bir dili başka bir dile çeviren programlara "Translater" denir.
+			Orn;				C# --> VB 
+
+Complier  : Eğer bu çevirme işlemi yüksek dereceli dilden alçak seviyeli dileyse bu tür programlara "Complier" denir.
+			Orn; C complier, C dilini makine diline dönüştürür.
+			Orn;				C# --> Assembly
+
+/********************************* 16/12/2020 *********************************/
+
+Undefined Behavior (Tanımsız Davranış):
+
+Exm;
+
+int* xprt;				//Pointer bir adrese atanamdığı 
+xprt = 10;				//için tanımsız davranış
+----
+toplam = ++a + a;		//Tanımsız bir davranış
+						//C de nasıl çalıştığının
+						//garantisi yok
+//Örneğin javada undefined behavior yoktur ve 
+a=10 ise toplam = 11 + 11 = 22 olur
+
+
+Unpsecidied Behavior (Belirsiz Davranış): 
+
+Exm;
+
+k = fcn(a, b);				//Burada a ve b değişkenleri fonksiyona parametre 
+							//olarak girilmiş. a'dan x'e ve b'den y'ye kopyalama
+fcn(int x, int y)			//işi ilk soldan sağa mı sağdan sola mı yapılacağı 
+{							//derleyiciye bağlıdır ve derleyici nasıl yapacağını 
+	...						//söylemez. Bu yüzden kodun ona göre yazılması lazımdır.
+}
+
+Örneğin yukarıdaki örnek şu şekilde yazılırsa daha iyi anlaşılır.
+
+a = 10;
+k = fcn(++a, a);		// Eğer sağdan sola atama yapılıyorsa   			  
+								<------ 
+fcn(int x, int y)				fcn(11,10)
+{						// Eğer soldan sağa atama yapılıyorsa   	 
+	...							------> 
+}								fcn(11,11)
+
+// Bu davranış belirsiz davranış olduğu için kodun ona göre yazılması gerekmektedir.
+
+
+ Behavior ( Davranış): 
+
+Exm;
+
+ a << i 			// Bu davranışta i kadar ötelenir ve sıfır doldurulur
+
+ a >> i 			// Bu davranışta ise eğer a negatif bir tam sayıysa 
+ 					// soldan ne ile dolduracağı belirli değildir. Yani 
+ 					// işaret bitini koruyacak mı, birle mi yoksa 
+ 					// sıfırla mı besleyecek derleyiciye bırakılmıştır.
+---
+long a;
+int b;
+
+b = (int) a;		// Bu dönüşüm yapıldığında büyük ve işaretsiz bir 
+					// tür ufak ve işaretli bir türe dönüştürülmektedir.
+					// Fakat bu dönüşümde derleyiciye bağlıdır. Yani dönüşüm 
+					// sonucunda 8-byte olan long, 4-byte olan int'e dönüştürülürken
+					// yüksek anlamlı baytları da atabilir, düşük anlamlı baytları
+					// da atabilir. Eğer hedef işaretsizse yüksek anlamlı baytlar 
+					// atılır fakat işaretli olduğunda derleyiciye bağlıdır.
+---
+int a;				// int türünün kaç bayt olacağı derleyiciye bağlıdır. C
+					// standartları sadece en az 2 byte olabileceğini söyler 
+					// fakat kaç byte olacağını söylemez. 
+
+
+/********************************* 6 - 23/12/2020 *********************************/
+
+/*
+strtok: strtok fonksiyonu string içinde belirtilen delimeter'a göre ayırma işlemi 
+yapar. Bu ayırma işleminde fonksiyonun ilk çağırılmasında char dizisinin 
+göstergesi ve neye göre ayırılacağı parametre olarak girilir. Bu parametreler 
+girildikten sonra fonksiyon string içinde arama yapar. Eğer delimeter'ı string 
+içinde bulursa oraya \0(NULL) karakter yerleştirir ve string diziyi
+static olarak bir değişkende tutar. 
+Bu fonksiyon 1 defa çağırılırsa ilk delimeter'ı bulduğu yerde çıktıyı verir, 
+stringin içerisindeki diğer eşleşen karakterleri ayrıştırmaz. Eğer diğerlerinin
+de ayrıştırılması isteniyorsa fonksiyon bir daha çağırılmalıdır ve giriş 
+parametresi artık string göstergecisi değil de NULL olmalıdır. Çünkü artık ilk 
+NULL karakterden aramaya başlayacak ve diğerini bulacaktır. Fonksiyon en başta 
+yazılan stringi static bir değişkende tuttuğu için bir daha pointer olarak girilmez.
+Eğer bu fonksiyon bir string üzerinde pars ediliyorsa ve başka bir string pars
+edilmek istenirse karışıklık yaşanır.
+
+Prototip:
+char *strtok(char *str, const char *delim);
+
+Param:
+char *str         : string yazı dizisinin göstergecisi. Bu parametre fonksiyona 
+nereden arama yapılmaya başlayacağını söyler. Parametre const olmadığı için
+parametre yerine strtok("asdf",..); yazılmamalıdır(Undefined Behavior). 
+Const olamdığı için fonksiyon parametrenin üzerine yazmakta ve bozmaktadır. 
+String içinde ilk eşleşen yere NULL koyar.
+const char *delim : Stringin ayrıştırılmasını istediği karakter veya karakterler.  
+
+*** POINTER EXAMPLE START *** */
+
+int main(void)
+{
+	char *pstr = "Enes can trkgoglu";
+	pstr++;
+	printf("%c\n", *pstr);
+
+	return 0;
+}
+/********* OUTPUT ********* POINTER EXAMPLE */
+	char *pstr = "Enes can trkgoglu";						
+	printf("%s\n", pstr);					=> Enes can trkgoglu
+----
+	char *pstr = "Enes can trkgoglu";						
+	printf("%c\n", *pstr);					=> E
+----
+	char *pstr = "Enes can trkgoglu";
+	pstr++;							
+	printf("%c\n", *pstr);					=> n
+
+*** POINTER END ***
+
+
+*** FILE START ***
+
+https://stackoverflow.com/questions/5672746/what-exactly-is-the-file-keyword-in-c
+
+typedef struct _iobuf
+{
+    char*   _ptr;
+    int _cnt;
+    char*   _base;
+    int _flag;
+    int _file;
+    int _charbuf;
+    int _bufsiz;
+    char*   _tmpfname;
+} FILE;
+
+
+*** FILE END ***
+
+
+*** SIZEOF START ***
+
+sizeof operatörü, bir nesnenin bellekte kaç byte yer kapladığı değerini üretir. 
+
+sizeof = (değişken_elemanın_adedi) * (datatipi_boyutu)
+
+Eğer dizinin eleman adedi öğrenilmek istenirse veri tipinin büyüklüğüne bölünmelidir.
+Exm
+{
+	int arr[10];
+	pritnf("Dizinin boyutu = &d", sizeof(arr)/sizeof(int));
+}
+
+C dilinin anahtar sözcüklerinden biri olan sizeof bir operatör görevindedir. sizeof operatörü, bir nesnenin bellekte kaç byte yer kapladığı değerini üretir. Bu operatörün ürettiği değer, derleme zamanında derleyici için bir sabit ifadesidir. sizeof operatörünün ürettiği değer standart bir typedef ismi (tür eş ismi) olan size_t türündendir. size_t türü derleyiciye bağlı olarak seçilen bir işaretsiz tam sayı türüdür. size_t türü derleyiciler tarafından unsigned int, unsigned long ya da unsigned long long türlerinden birinin eş ismi olarak seçilebilir. size_t türünün typedef bildirimi standart stddef.h isimli başlık dosyasında yapılmıştır.
+
+
+
+*** SIZEOF END ***
+
+/********************************* 7 - 08/04/2021 *********************************/
+
+
+
+
