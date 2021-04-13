@@ -168,7 +168,100 @@ C dilinin anahtar sözcüklerinden biri olan sizeof bir operatör görevindedir.
 
 *** SIZEOF END ***
 
-/********************************* 7 - 08/04/2021 *********************************/
+/********************************* 8 - 13/04/2021 *********************************/
+
+Bazı argümanlara seçenek(switch) denir.
+
+Seçenek argümanlar windows'ta "/" ile Unix Linux Sistemlerde "-" ile
+belirtilir. 
+Seçenekler tek karakter olmak zorunda
+
+
+
+Argümanlar 3'e ayrılır:
+
+1-Seçeneksiz argüman
+--------------------
+./sample test.txt
+
+2-Argümansız seçenek
+--------------------
+./sample -a
+
+3-Argümanlı seçenek
+--------------------
+gcc -o sample sample.c
+
+-o sample = Argümanlı seçenek
+gcc = program
+-o yanına argüman sitiyor
+---
+
+./sample -a ali -b-c veli.txt selami.txt
+
+-a ali = Argümanlı seçenek
+-b = argümansız seçenek
+-c = argümanlı seçenek
+veli.txt = seçeneksiz argüman
+
+
+
+Windows:
+------
+sample /a test.txt     --->  /a = seçenek
+
+
+Linux:
+------
+ls bir program,
+ls -l /usr/include
+
+/usr/include = argüman
+-l = seçenek
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

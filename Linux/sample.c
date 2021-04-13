@@ -1,43 +1,86 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#define LINE_LENGTH     1024
+#include "stdio.h"
+#include "unistd.h"
 
 int main(int argc, char *argv[])
 {
-	FILE *pFT, *pFS;
-	char *pFNameS, *pFNameT;				//** Name of Source file, Name of Temp file 
-	char buf[LINE_LENGTH];
+	const char *optstring = "abc";
+	int result;
+	int flag_a, flag_b, flag_c;
 
+	flag_a = flag_b = flag_c = 0;
 
-	pFNameS =  argv[1];						//** Kaynak, okunacak dosyanin ismi
-	pFNameT =  argv[2];						//** Kaynak dosyanin icindekilerin yazdirilacagi dosyanin ismi
-
-	if ( (pFT = fopen(pFNameT, "w")) == NULL)
+	/* Geri donulen deger, okudugu karakterin ascii degeridir. 
+	Karakterler fonksyion tarafından tek tek okunur. Eger 
+	girilen arguman, parametrede belirtilenle uyusmazsa ekrana
+	hata mesaji basar ve -1 degerini dondurur. */	 
+	while ( (result = getopt(argc, argv, optstring)) != -1 )
 	{
-		printf("fopen pFT error");
-		exit(EXIT_FAILURE);
-	}
+		puts("Secenek girildi");
+		switch (result)
+		{
+			case 'a':
+				
+				flag_a = 1;
+				break;
+			
+			case 'b':
 
-	if ( (pFS = fopen(pFNameS, "r")) == NULL)
-	{
-		printf("fopen pFS error");
-		exit(EXIT_FAILURE);
-	}
+				flag_b = 1;
+				break;
+			
+			case 'c':
 
-	while ( fgets(buf, LINE_LENGTH, pFS) != NULL)
-	{
-		fprintf(pFT, "%s", buf);
-		printf("%s\n", buf);
-	}
+				flag_c = 1;
+				break;
+			
+			default:
+				break;
+		}
+	} 
 
-	fclose(pFS);
-	fclose(pFT);
-    
-    return 0;
+	if (flag_a)
+		printf("-a option used\n");
+	if (flag_b)
+		printf("-b option used\n");
+	if (flag_c)
+		printf("-c option used\n");
+
+
+	return 0;
 }
-/* Others
 
-	CMD:	./sample test.txt hedef.txt
-	FILE:	hedef.txt, test.txt
+
+
+
+/****************************************************** Others
+ *
+ *  argv[] dizisinin son elemanının NULL karakter olacağı standartlarda garanti edilmiştir.
+ * 
+ * ---
+ *  int getopt(int argc, char *const argv[], const char *optstring)
+ * 	---------------------------------------------------------------
+ *  optstring = Seçeneklerin bulunduğu yazı. 
+ *  Örn; 
+ *  "abc", bunlar da -a-b-c,
+ *  "ab:c", burada ise b'nin argümanlı olacağı anlamına gelmektedir.
+ * 
+ *  getopt her çağırıldığında farklı bir seçeneği vermektedir. O yüzden iş bitene kadar 
+ *  çağırılmalıdır.
+ * 
+ *  Return: 
+ *    If an option was successfully found, then getopt() returns the
+ *    option character.  If all command-line options have been parsed,
+ *    then getopt() returns -1.  If getopt() encounters an option
+ *    character that was not in optstring, then '?' is returned. 
+ *  
+ *   Geri donulen deger, okudugu karakterin ascii degeridir. 
+ *	Karakterler fonksyion tarafından tek tek okunur. Eger 
+ *	girilen arguman, parametrede belirtilenle uyusmazsa ekrana
+ *	hata mesaji basar ve -1 degerini dondurur. */	 
+ *  
+
+/************************************************ CODE PARTICLES
+ * 
+ * 
+ * 
 */
