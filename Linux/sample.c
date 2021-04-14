@@ -4,37 +4,46 @@
 
 int main(int argc, char *argv[])
 {
-	const char *optstring = "ab:c:";
+	const char *optstring = "msad";
 	int result;
-	int flag_a, flag_b, flag_c, flag_err = 0;
-	char *arg_a, *arg_b, *arg_c;
-	flag_a = flag_b = flag_c = 0;
+	int flag_m, flag_s, flag_d, flag_a, flag_err = 0;
+	char *arg_m, *arg_s, *arg_d, *arg_a;
+	double arg1, arg2, calculated;
+	flag_m = flag_s = flag_d = flag_a = 0;
+	
 
-	opterr = 0;
+
+	opterr = 0;															/* getopt(...) fonksiyonu hata raporu vermesin. */
 
 	while ( (result = getopt(argc, argv, optstring)) != -1 )
 	{
 		switch (result)
 		{
-			case 'a':
+			case 'm':
 			
+				arg_m = optarg;
+				flag_m = 1;
+				break;
+			
+			case 's':
+			
+				arg_s = optarg;
+				flag_s = 1;
+				break;
+			
+			case 'd':
+
+				arg_d = optarg;
+				flag_d = 1;
+				break;
+			
+			case 'a':
+
 				arg_a = optarg;
 				flag_a = 1;
 				break;
-			
-			case 'b':
-			
-				arg_b = optarg;
-				flag_b = 1;
-				break;
-			
-			case 'c':
 
-				arg_c = optarg;
-				flag_c = 1;
-				break;
-			
-			case '?':	/* Invalid option */
+			case '?':	/* Invalid option or no arguman for option with arguments */
 				flag_err = 1;
 				fprintf(stderr, "invalid option: -%c\n", optopt);
 				break;
@@ -47,34 +56,35 @@ int main(int argc, char *argv[])
 	if (flag_err)														/* Hatali secenek girisi varsa programdan cikar */
 		exit(EXIT_FAILURE);
 
-	if (flag_a && arg_a != NULL)
-		printf("-a option used and have an arguman %s\n", arg_a);
-	else if (flag_a)
-		printf("-a option used\n");
-
-	if (flag_b && arg_b != NULL)
-		printf("-b option used and have an arguman %s\n", arg_b);
-	else if (flag_b)
-		printf("-b option used\n");
-
-	if (flag_c && arg_c != NULL)
-		printf("-c option used and  have an arguman %s\n", arg_c);
-	else if (flag_c)
-		printf("-c option used\n");
-
-
-	
-	if (optind != argc )												/* Seceneksiz arguman varsa */
+	if (flag_a + flag_s + flag_m + flag_d != 1)
 	{
-		puts("\nSeceneksiz argumanlar");
-		for (int i = optind; i < argc; i++)
-		{
-			printf("%s\n", argv[i]);
-		}
+		puts("Bir seyler gir");
+		exit(EXIT_FAILURE);
 	}
+	else if (argc - optind != 2)
+	{
+		puts("Wrong number of argumants");
+		exit(EXIT_FAILURE);
+	}	
+
+
+	arg1 = strtod(argv[optind], NULL);
+	arg2 = strtod(argv[optind + 1], NULL);
+	
+	if (flag_a)
+		calculated = arg1 + arg2;
+	if (flag_m)
+		calculated = arg1 - arg2;
+	if (flag_d)
+		calculated = arg1 / arg2;
+	if (flag_s)
+		calculated = arg1 * arg2;
+
+	printf("Calculated = %.2f\n", calculated);
 
 	return 0;
 }
+
 
 
 
@@ -133,7 +143,9 @@ int main(int argc, char *argv[])
  *  optopt : Eger geçersiz argüman girilirse, geçersiz argümanı döndürür.
  * 
  * 
-
+ * 
+ * 
+ *   elde edilen sayi = strtod(argümanlar, fonksiyon sayinin bittiği yerin adresini döner)
 */
 /************************************************ CODE PARTICLES
  * 
