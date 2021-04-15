@@ -2,56 +2,62 @@
 #include "stdlib.h"
 #include "getopt.h"
 
+#define MAX_LINE    1024
+
 int main(int argc, char *argv[])
 {
 
 	int result;
-	int flag_a= 0, flag_b= 0, flag_help= 0, flag_count= 0, flag_line= 0, flag_err = 0;
-	char *arg_a, *arg_b, *arg_count, *arg_line;
+	int flag_bytes= 0, flag_line= 0, flag_help= 0, flag_verbose= 0, flag_version= 0, flag_err = 0;
+	char *arg_bytes, *arg_line;
 
 	int index;
 
 	struct option options[] = 
 	{
-		{"help",  no_argument,       &flag_help, 1  },
-		{"count", required_argument, NULL,       'c'},				
-		{"line",  optional_argument, NULL,       3  },
+		{"bytes",   required_argument, NULL, 'c'},
+		{"lines",   required_argument, NULL, 'n'},
+		{"verbose", no_argument,       NULL, 'v'},
+		{"help",    no_argument,       NULL, 'h'},
+		{"version", no_argument,       NULL, 'i'},
 		{0,0,0,0}
 	};
 	
-
 	opterr = 0;
 
-	while ( (result = getopt_long(argc, argv, "ab:c:", options, &index)) != -1 )				/* c: argumanli yapildigi secenek oldugu icin ve */
+	while ( (result = getopt_long(argc, argv, "c:n:v", options, &index)) != -1 )				/* c: argumanli yapildigi secenek oldugu icin ve */
 	{																							/* options'taki count val donusu 'c' oldugu icin -c veya --count girilse de ayni seydir. */
 		switch (result)
 		{
-			case 'a':											
+			case 'c':													/* --bytes */
 			
-				arg_a  = optarg;
-				flag_a = 1;
+				arg_bytes  = optarg;
+				flag_bytes = 1;
 				break;
 
-			case 'b':							
+			case 'n':													/* --line */
 			
-				arg_b  = optarg;
-				flag_b = 1;
-				break;
-
-			case 'c':													/* --count */
-			
-				arg_count  = optarg;
-				flag_count = 1;
-				break;
-			
-			case 3:														/* --line */
-
 				arg_line  = optarg;
 				flag_line = 1;
 				break;
+
+			case 'v':													/* --verbose */
+			
+				flag_verbose = 1;
+				break;
+		    
+			case 'h':													/* --help */
+			
+				flag_help = 1;
+				break;
+
+			case 'i':													/* --version */
+			
+				flag_version = 1;
+				break;
 			
 			case '?':	/* Invalid option */
-				if (optopt == 'b')
+				if (optopt == 'c')
 					fprintf(stderr, "Short option must be have an argument.\n");
 				else if (optopt != 0)
 					fprintf(stderr, "Invalid option.\n");
@@ -68,38 +74,97 @@ int main(int argc, char *argv[])
 	if (flag_err)														/* Hatali secenek girisi varsa programdan cikar */
 		exit(EXIT_FAILURE);
 
-	if (flag_a && arg_a != NULL)
-		printf("-a option used and have an arguman %s\n", arg_a);
-	else if (flag_a)
-		printf("-a option used\n");
-
-	if (flag_b && arg_b != NULL)
-		printf("-b option used and have an arguman %s\n", arg_b);
-	else if (flag_b)
-		printf("-b option used\n");
-
 	if (flag_help)
-		printf("--help option used\n");
+		printf("YARDIM YOK KARDESIM ALLAH VERSIN\n");
 
-	if (flag_count)
-		printf("--count option used and  have an arguman \"%s\"\n", arg_count);
-	else if (flag_count)
-		printf("--count option used\n");
+	if (flag_version)
+		printf("VERSION v1.0\n");
 
-	if (flag_line && arg_line != NULL)
-		printf("--line option used and  have an arguman \"%s\"\n", arg_line);
-	else if (flag_line)
-		printf("--line option used\n");
 
+	if ((flag_verbose != 0) && (optind!= argc) )
+	{
+		printf("==> %s <==\n", argv[optind]);
+	}
+	else if (flag_verbose == 1 && optind== argc)
+	{
+		fprintf(stderr, "DOSYA ISMINI GIRMEDINIZ\n");
+		exit(EXIT_FAILURE);
+	}
+/********************************************************  FILE OPERATION *********************************************************/
+
+	FILE *pFile;
+	char pLine[MAX_LINE];
+	int pBytes;
+	int cntArg = optind;
+	
+	/************************* BYTE by BYTE READ *************************/
+	if (flag_bytes)																				/* --byte veya -c secenegi girilmisse */
+	{
+		if (cntArg < argc)																		/* Seceneksiz arguman yoksa, dosya ismi girilmemisse hata ver kapa */																		
+		{
+			for (cntArg = optind; cntArg < argc; cntArg++)										/* Seceneksiz arguman sayisi kadar dondurur, birden fazla dosya okumak icin */
+			{
+				printf("BYTE MODE = DOSYA ISMI = %s\n",argv[cntArg]);
+				if ( (pFile = fopen(argv[cntArg], "r")) == NULL )
+				{
+					fprintf(stderr, "Fail on fopen BYTE\n");
+					exit(EXIT_FAILURE);
+				}			
+
+				fseek(pFile, 0, SEEK_SET);
+
+				for(int i = 0; i < strtod(arg_bytes, NULL); i++)								/* Dosyayi, girilen byte sayisi kadar byte byte oku ve yazdir */
+				{
+					if ( fread(&pBytes, sizeof(char), 1, pFile) != 1 )							/* Dosyayi byte byte oku */
+					{
+						fprintf(stderr, "\nOUT OF BYTES or fgets error\n");
+						exit(EXIT_FAILURE);
+					}	
+					printf("%c", pBytes);
+				}
+				puts("\n");
+				fclose(pFile);
+			}
+		}
+	}
+	
+	cntArg = optind;
+	/************************* LINE by LINE READ *************************/
+    if ( flag_line)																				/* --lines veya -n secenegi girilmisse */
+	{
+		if (cntArg < argc)																		/* Seceneksiz arguman yoksa, dosya ismi girilmemisse hata ver kapa */																		
+		{
+			for (cntArg = optind; cntArg < argc; cntArg++)										/* Seceneksiz arguman sayisi kadar dondurur, birden fazla dosya okumak icin */
+			{
+				printf("LINE MODE = DOSYA ISMI = %s\n",argv[cntArg]);
+				if ( (pFile = fopen(argv[cntArg], "r")) == NULL )
+				{
+
+					fprintf(stderr, "Fail on fopen LINE\n");
+					exit(EXIT_FAILURE);
+				}
+
+				for(int i = 0; i < strtod(arg_line, NULL); i++)									/* Dosyayi, girilen line sayisi kadar line line oku ve yazdir */
+				{
+					if ( (fgets(pLine, MAX_LINE, pFile)) == NULL )								/* Dosyayi line line oku */
+					{
+						fprintf(stderr, "\nOUT OF LINE or fgets error\n");
+						exit(EXIT_FAILURE);
+					}
+
+					fprintf(stdout, "%s", pLine);
+				}
+				puts("\n");
+				fclose(pFile);
+			}
+		}
+		else
+		{
+			fprintf(stderr, "Dosya gir\n");
+			exit(EXIT_FAILURE);
+		}
 
 	
-	if (optind != argc )												/* Seceneksiz arguman varsa */
-	{
-		puts("\nSeceneksiz argumanlar");
-		for (int i = optind; i < argc; i++)
-		{
-			printf("%s\n", argv[i]);
-		}
 	}
 
 	return 0;
@@ -110,75 +175,36 @@ int main(int argc, char *argv[])
 
 
 /****************************************************** Others
- *
- *  argv[] dizisinin son elemanının NULL karakter olacağı standartlarda garanti edilmiştir.
+ *  KOD CALSTIRMA ORNEGI:
+ *  
+ *  ./sample --lines 10 test.txt
+ *  ./sample --lines 100 test.txt mest.txt test.txt
+ * 	./sample --bytes 10 test.txt
+ *  ./sample --bytes 100 test.txt mest.txt test.txt
+ *  ./sample --help
+ *  ./sample --version
+ *  ./sample --verbose test.txt
  * 
- * 	Calistirma orneği:
- *  ./sample --line=ali
- *  ./sample --line
- *  ./sample --count=veli
- *  ./sample --count=veli -ab deniz
- * ---
- *  int getopt_long(int argc, char * const argv[],
-                  const char *optstring,
-                  const struct option *longopts, int *longindex);
- * 	---------------------------------------------------------------
- * 
- *  Yaratılacak olan option structının son elemanı {0,0,0,0} ile bitmelidir.
- * 
- *  struct option 
- * 	{
-     const char *name;
-     int         has_arg;
-     int        *flag;
-     int         val;
-    };
-
-	name   is the name of the long option.
-
-    has_arg
-            is:  
-			no_argument (or 0) if the option does not take an argument;
-            required_argument (or 1) if the option requires an argument;  or
-            optional_argument  (or  2) if the option takes an optional argu‐
-            ment.
-
-	no argument       = argümansız
-	required_argument = argümanlı, --line=ali
-						Eğer argüman verilmeden yazılırsa seçeneği de görmez.
-	optional_argument = argümanlı veya argümansız
-
-
-    flag    specifies how results are returned for a long option.   
-			If  flag is  NULL,  then  getopt_long()  returns  val.  
-			(For example, the calling program may set val to the equivalent short option char‐
-            acter.)   Otherwise, getopt_long() returns 0, and flag points to
-            a variable which is set to val if the option is found, but  left
-            unchanged if the option is not found.
-
-	Eğer NULL girilirse geri döneceği değeri val'e set eder.
-	Eğer int değişkenin adresini girersen seçenek geldiğinde val değeri flage atanir. 
-
-    val     is  the value to return, or to load into the variable pointed to
-            by flag.
-
-	RETURN
-	------
-	
-	Eğer flag == NULL ise, getopt_long un geri donduruleceği değer val değeridir. 
-	Eğer flag != NULL ise, 0 değerini döndürür.
-	Eğer bütün seçenekler parse edilmişse -1 değerini döndürür. 
-	Eğer girilen arg uyuşmazsa ? döndürür.
-	Kısa seçeneği de döner.
-
-	getopt fonksiyonunda char döndürülüp anlaşılıyordu fakat
-	burada structta long optiona özgü tanımlanan val değerini döndürür.
-
-
+ * --verbose veya -v : Dosyanin ismini verir.
+ * --bytes   veya -c : Dosyadan okunacak olan byte sayisini verir.
+ * --lines   veya -n : Dosyadan okunacak olan line sayisini verir.
+ * --help            : Help.
+ * --version         : Yazilim versiyonu.
 
 */
+
 /************************************************ CODE PARTICLES
- * 
+ 	SEÇENEKSIZ ARGUMANLARI YAZDIRIR
+	if (optind != argc )												
+	{
+		puts("\nSeceneksiz argumanlar");
+		for (int i = optind; i < argc; i++)
+		{
+			printf("%s\n\n", argv[i]);
+		}
+	}
+
+
  * can girilsin
  * printf("%c\n", argv[0][0]); = printf("%c\n", *argv[0]) = 'c';
  * printf("%s\n", argv[0])                                = can;
