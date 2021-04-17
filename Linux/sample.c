@@ -1,6 +1,6 @@
+#include "stdio.h"
 #define MAX   100
 
-int printf(const char *format, ...);
 
 int main(int argc, char *argv[])
 {
@@ -19,74 +19,23 @@ int main(int argc, char *argv[])
 
 /****************************************************** Others
  *  KOD CALSTIRMA ORNEGI:
- *  ./sample
+ *  gcc -E sample.c
+ *  
 */
 
 /************************************************ CODE PARTICLES
- * Eger dosya aşağıdaki gibi çalıştırılırsa sqrt fonksiyonun prototipi 
- * gösterilmediği için otomatik olarak
- * int geri dönüş değerine sahip, default olarak c'de belirtilen bir prototip 
- * yaratilir ve program çalıştırıldığında saçma bir sonuç verir.
- * 
- * Eğer sqrt prototipi düzgün bir şekilde verilirse;
- * double sqrt(double a);
- * fonksiyon düzgün bir şekilde çıktı verecektir. 
- * 
- * #include "math.h" dosyasi çağırılarak ise double sqrt(double xxx) fonksiyonunun prototipi yazılmış olur. 
- * El ile yazmaktan hiçbir farkı yoktur. 
- * sqrt'nin kodları derlenmiş bir şekilde zaten kütüphanelerde bulunmaktadır. 
- * 
- * 
- * Benzer durum printf icin de yapilmistir.
- * 
- ******************************************************************************************************************************************************
-**** YANLIS ******
+ * gcc -E sample.c yapılarak derlemeden ve linklemeden önceki, kodun preprocessor kısmı gözlemlenebilmektedir. Bu kısımda # ile belirtilen yerler
+ * uygun değerlerle doldurulup farklı bir temp dosyaya yazılıp bu dosya silinip diğer temp dosyanın ismi değiştirilerek daha sonra derleme ve linkelem 
+ * işlemi yapılarak tamamlanır. 
+ * Preprocessor işlemi sadece #define için değildir. Örneğin kütüphaneyi #include "stdio.h" include edersek, preprocessor derleme yapmadan önce stdio.h
+ * kütüphanesinin tamamını kopyalar ve kodun yukarısını yapıştırır. 
+ * Deneme için aşağıdaki kod belirtilen şekilde çalıştırılabilir. Fazla satır olduğu için yapmadım.;
+
+gcc -E sample.c
+
 #include "stdio.h"
-
-int main(int argc, char *argv[])
-{
-	double result;
-
-	result = sqrt(100);
-	printf("Test %f\n", result);
-	
-	return 0;
-}
-
-**** DOGRU ******
-#include "stdio.h"
-
-double sqrt(double a);
-int main(int argc, char *argv[])
-{
-	double result;
-
-	result = sqrt(100);
-	printf("Test %f\n", result);
-	
-	return 0;
-}
-
-**** DOGRU ******
-#include "stdio.h"
-#include "math.h"
-
-int main(int argc, char *argv[])
-{
-	double result;
-
-	result = sqrt(100);
-	printf("Test %f\n", result);
-	
-	return 0;
-}
-
-
-************************************* PRINTF
-
 #define MAX   100
 
-int printf(const char *format, ...);
 
 int main(int argc, char *argv[])
 {
@@ -97,5 +46,32 @@ int main(int argc, char *argv[])
 	printf("Test %f\n", result);
 	
 	return 0;
+} 
+
+ ******************************************************************************************************************************************************
+ÇIKTI - 1
+
+ect@ect-virtual-machine:~/Desktop/sample$ gcc -E sample.c
+# 1 "sample.c"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 31 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 32 "<command-line>" 2
+# 1 "sample.c"
+
+
+int printf(const char *format, ...);
+
+int main(int argc, char *argv[])
+{
+ double result;
+
+ result = 100;
+
+ printf("Test %f\n", result);
+
+ return 0;
 }
+******************************************************************************************************************************************************
 */
