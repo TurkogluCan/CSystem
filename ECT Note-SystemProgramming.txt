@@ -250,7 +250,8 @@ ls -l /usr/include
  *   Geri donulen deger, okudugu karakterin ascii degeridir. 
  *	Karakterler fonksyion tarafından tek tek okunur. Eger 
  *	girilen arguman, parametrede belirtilenle uyusmazsa ekrana
- *	hata mesaji basar ve -1 degerini dondurur. 	 
+ *	hata mesaji basar ve -1 degerini dondurur. Eğer argümanlı seçeneğin
+ *  argümanı olmazsa da ? döner
  *  
  * 
  *  getopt(...) fonksiyonu, komut satiri argumanlarinin *argv[] icerisindeki
@@ -283,11 +284,35 @@ ls -l /usr/include
 */
 
 -------------------------------------------------------------------------------------------------------------*/
+/************************************************************************************************ 12 - 17/04/2021 ************************************************************************************************/
+/*-----------------------------------------------------------------------------------------------------------
+
+Header file:
+#include dosyalarinin içerisinde, bellekte yer kaplayan bir fonksiyon tanimlamasi yoktur, global değişken tanimalasi yoktur. 
+Mantık olarak #include dosyalarının içinde bir fonksiyon veya değişken tanimlaması yoktur. Fonk. prototip ve genel 
+bildirimler bulunur. Örn; int a; diye bir şey yoktur.
+
+Fonksiyonların kendileri derlenmiş olarak library'lerde bulunur. Sen kullanmazsan bellekte yer kaplamaz.
+Link aşamasında linker tarafından kütüphaneden çekilip alınır.
+
+Linker; object modül içerisinde derleyicinin bulamadığını kütüphanelerde arayan birleştirici programdır.
+Genellikle c derleyicileri, standart c fonksiyonlarının bulunduğu librarylere otomatik bakıyorlar.
 
 
+Object modül linkera, programın şu kısmında sqrt diye bir fcn çağırılmış. Ben çağırılma kodunu buraya yazdım,
+linker sen de library'den bul, işlem tamamlansın.
+Linker obj modulu link ederken standart c fonksiyonu olan library'e bakıyor, derlenmiş olan sqrt kodunu .exe içerisine yazıyor
+ve işlem tamamlanıyor.
 
+Bazı library'lere otomatik olarak bakılmaktadır. Standart C fonksiyonları gibi... Bu yüzden örneğin ...printf(...)
+fnksiyonunun sadece prototipini yazsak da sıkıntı çıkarmadan çalışma sergiler.
 
-
+gcc -E sample.c yapılarak derlemeden ve linklemeden önceki, kodun preprocessor kısmı gözlemlenebilmektedir. Bu kısımda # ile belirtilen yerler
+uygun değerlerle doldurulup farklı bir temp dosyaya yazılıp bu dosya silinip diğer temp dosyanın ismi değiştirilerek daha sonra derleme ve linkelem 
+işlemi yapılarak tamamlanır. 
+Preprocessor işlemi sadece #define için değildir. Örneğin kütüphaneyi #include "stdio.h" include edersek, preprocessor derleme yapmadan önce stdio.h
+kütüphanesinin tamamını kopyalar ve kodun yukarısını yapıştırır. 
+-------------------------------------------------------------------------------------------------------------*/
 
 
 
