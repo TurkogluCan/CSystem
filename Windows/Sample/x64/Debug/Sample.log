@@ -1,0 +1,3 @@
+﻿  Sample.c
+C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\Sample.c(15): warning C4716: 'get_handle': must return a value
+  Sample.vcxproj -> C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\x64\Debug\Sample.exe

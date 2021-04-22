@@ -1,0 +1,2 @@
+C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\x64\Debug\Sample.exe
+C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\x64\Debug\Sample.pdb

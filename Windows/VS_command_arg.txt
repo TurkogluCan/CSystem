@@ -1,6 +1,0 @@
-Visual studio ile belirlenen yere, komut satırına yazar gibi argüman yazılabilir. 
-Örn;
-
-sample test.txt
-
-VS: test.txt
