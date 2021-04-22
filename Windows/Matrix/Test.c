@@ -1,31 +1,31 @@
 #include "stdio.h"
 #include "stdlib.h"
-#include "Matrix.h"
-
+#include "array.h"
+#include "math.h"
 
 int main(void)
 {
-	HMATRIX hMatrix;
+	HARRAY hArray1, hArray2;
 
-	if ((hMatrix = CreateMatrix(5, 5)) == NULL)
-	{
-		fprintf(stderr, "can not create matrix\n");
-		exit(EXIT_FAILURE);
-	}
+	const double a[7] = {1, 2, 3, 4, 5, 6 ,7};
+	const double b[3] = {10, 20, 30};
 
-	for (int i = 0; i < hMatrix->rowSize; i++)
-		for (int j = 0; j < hMatrix->colSize; j++)
-			if ((SetElem(hMatrix, i, j, j)) == FALSE)
-			{
-				fprintf(stderr, "can not set element\n");
-				exit(EXIT_FAILURE);
-			}
-				
-	
+	hArray1 = CreateArrayWithValues((double *)a, sizeof(a) / sizeof(double));
+	hArray2 = CreateArrayWithValues((double *)b, sizeof(b) / sizeof(double));
 
-	DispMatrix(hMatrix);
 
-	CloseMatrix(hMatrix);
+
+
+
+	CloseArray(hArray1);
+	CloseArray(hArray2);
 
 	return 0;
 }
+
+
+/*
+printf("size = %d", sizeof(a) / sizeof(double));
+*/
+
+

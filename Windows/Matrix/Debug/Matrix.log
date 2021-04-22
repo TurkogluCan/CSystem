@@ -1,4 +1,2 @@
 ﻿  Test.c
-C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Matrix\Test.c(16,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Matrix\Test.c(17,21): warning C4018: '<': signed/unsigned mismatch
   Matrix.vcxproj -> C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Matrix\Debug\Matrix.exe
