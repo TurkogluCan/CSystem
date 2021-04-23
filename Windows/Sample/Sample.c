@@ -9,14 +9,27 @@ void ExitSys(LPCSTR lpszMsg);
 
 int main(void)
 {
-	HANDLE hFile;
-
+	HANDLE	hFile;
+	DWORD	dwRead;
+	char	cBuf[1024];
+	
 	/* Dosya varsa ac, yoksa hata ver */
 	if ((hFile = CreateFile("Test.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
 		ExitSys("CreateFile");
 
 
-	printf("Ok\n");
+	if (!ReadFile(hFile, cBuf, 5, &dwRead, NULL))
+		ExitSys("ReadFile");
+
+	/* Bufferin tamamini ekrana basmak icin okunan bufferin sonuna NULL karakter eklendi. */
+	cBuf[dwRead] = '\0';		
+	puts(cBuf);
+
+
+
+
+	/* Dosya kapatilir. Geri donus degerine bakmaya ,hatali olma durumuna gore bir sey yapamayacagimiz icin, gerek yoktur. */
+	CloseHandle(hFile);
 
 	return 0;
 }
@@ -53,6 +66,7 @@ void ExitSys(LPCSTR lpszMsg)
 	
 	--- CreateFile Ornegi ---
 
+	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
 	HANDLE WINAPI CreateFile(
   								LPCTSTR lpFileName,									//Dosya yol ifadesi
   								DWORD dwDesiredAccess,								//Okuma veya yazma veya her ikisi de modu
@@ -75,6 +89,38 @@ void ExitSys(LPCSTR lpszMsg)
 
 
 	- Ayni anda ayni dosyaya birden fazla kez create islemi yapilamaz, hata verir. Farkli dosyalar icin yapilabilir.
+
+
+	--- ReadFile Ornegi ---
+
+	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
+
+	BOOL WINAPI ReadFile(
+							HANDLE hFile,							//CreateFile’dan alinan Handle
+							LPVOID lpBuffer,						//Okunacaklarin yerleştirecegi adresi
+							DWORD nNumberOfBytesToRead,				//Okunacak byte sayisi
+							LPDWORD lpNumberOfBytesRead,			//Basarili olarak okunabilen byte sayisi
+							LPOVERLAPPED lpOverlapped			  	//Overlapped IO işlemi (Default: NULL)
+							
+							);
+	
+
+	If the function succeeds, the return value is nonzero (TRUE).
+
+	If the function fails, or is completing asynchronously, the return value is zero (FALSE). 
+	To get extended error information, call the GetLastError function.
+
+
+
+	--- CloseHandle ---
+
+	https://docs.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
+	- BOOL CloseHandle(HANDLE) fonksiyonu, Sadece dosyayi değil, kernel nesnelerini de ortak olarak kapatir.
+
+	---------------
+
+
+	
 
 
 
