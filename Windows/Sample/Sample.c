@@ -2,34 +2,54 @@
 #include "stdlib.h"
 #include "windows.h"
 
+#define	BUFSIZE		4096																									/* 512 isletim sistemlerindeki sector uzunlugudur. 4096 da katidir. */
+#define	END_FILE	0
 
 void ExitSys(LPCSTR lpszMsg);
 
 
-
-int main(void)
+int main(int argc, char *argv[])
 {
-	HANDLE	hFile;
-	DWORD	dwRead;
-	char	cBuf[1024];
+	HANDLE	hFileW, hFileR;
+	DWORD	dwRead, dwWritten;
+	char	cBufRead[BUFSIZE];
 	
-	/* Dosya varsa ac, yoksa hata ver */
-	if ((hFile = CreateFile("Test.txt", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
-		ExitSys("CreateFile");
+	if (argc != 3)																											/* errno donmedigi icin ExitSys yapilamaz */
+	{
+		fprintf(stderr, "Yanlis arguman sayisi\n");
+		exit(EXIT_FAILURE);
+	}
 
 
-	if (!ReadFile(hFile, cBuf, 5, &dwRead, NULL))
-		ExitSys("ReadFile");
+	if ((hFileW = CreateFile(argv[1], GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL)) == INVALID_HANDLE_VALUE)
+		ExitSys("CreateFile Write");
+	if ((hFileR = CreateFile(argv[2], GENERIC_READ,  0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
+		ExitSys("CreateFile Read");
 
-	/* Bufferin tamamini ekrana basmak icin okunan bufferin sonuna NULL karakter eklendi. */
-	cBuf[dwRead] = '\0';		
-	puts(cBuf);
+	
+	for (;;)
+	{
+		if (!ReadFile(hFileR, cBufRead, BUFSIZE, &dwRead, NULL))
+			ExitSys("ReadFile");
+
+			if (!WriteFile(hFileW, cBufRead, dwRead, &dwWritten, NULL) )													/* Eger dosyaya yazilirken hata olusmussa */
+				ExitSys("WriteFile");
+
+		if (dwRead == 0 )																									/* Eger okunacak dosya sonuna gelinmisse donguden cik */
+			break;
+
+		if (dwWritten != dwRead)																							/* Eger okunan kadar yazilamamissa exit yap. errno donmedigi icin ExitSys yapilamaz */
+		{
+			fprintf(stderr, "Yanlis arguman sayisi\n");	
+			exit(EXIT_FAILURE);
+		}
+	}
 
 
+	puts("Okunan dosyanin yazilmasi gerceklesmistir.");
 
-
-	/* Dosya kapatilir. Geri donus degerine bakmaya ,hatali olma durumuna gore bir sey yapamayacagimiz icin, gerek yoktur. */
-	CloseHandle(hFile);
+	CloseHandle(hFileW);																									/* CloseHandle ile Handle'in gosterdigi dosyalar kullanici tarafindan yazilmasa da */
+	CloseHandle(hFileR);																									/* Isletim sistemi tarafindan zaten kapatilacaktir. */
 
 	return 0;
 }
@@ -63,10 +83,14 @@ void ExitSys(LPCSTR lpszMsg)
 
 
 /****************************************************** Others
-	
-	--- CreateFile Ornegi ---
+	----------CALISTIRMA ORNEGI
+	!!!!! Program arguman alarak calismaktadir. Alinan ilk arguman yazilacak dosya, ikinci arguman ise okunacak dosya olarak girilmelidir. !!!!!
 
+
+
+	--- CreateFile Ornegi ---
 	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+
 	HANDLE WINAPI CreateFile(
   								LPCTSTR lpFileName,									//Dosya yol ifadesi
   								DWORD dwDesiredAccess,								//Okuma veya yazma veya her ikisi de modu
@@ -92,7 +116,6 @@ void ExitSys(LPCSTR lpszMsg)
 
 
 	--- ReadFile Ornegi ---
-
 	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
 
 	BOOL WINAPI ReadFile(
@@ -109,6 +132,19 @@ void ExitSys(LPCSTR lpszMsg)
 
 	If the function fails, or is completing asynchronously, the return value is zero (FALSE). 
 	To get extended error information, call the GetLastError function.
+
+
+	--- WriteFile Ornegi ---
+	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile
+
+	BOOL WINAPI WriteFile(
+							HANDLE hFile,								//CreateFile’dan alinan Handle
+							LPCVOID lpBuffer,							//Dosyaya yazılacak Buffer
+							DWORD nNumberOfBytesToWrite,				//Yazilacak byte sayisi
+							LPDWORD lpNumberOfBytesWritten,				//Basarili olarak yazilabilen byte sayisi
+							LPOVERLAPPED lpOverlapped					//Overlapped IO işlemi (Default: NULL)
+						
+							);
 
 
 
