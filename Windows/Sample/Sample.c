@@ -2,53 +2,41 @@
 #include "stdlib.h"
 #include "windows.h"
 
-#define	BUFSIZE		4096																									/* 512 isletim sistemlerindeki sector uzunlugudur. 4096 da katidir. */
-#define	END_FILE	0
+#define	BUFSIZE				4096																								/* 512 isletim sistemlerindeki sector uzunlugudur. 4096 da katidir. */
+#define	SuKadarByteKaydir 	15
 
 void ExitSys(LPCSTR lpszMsg);
 
 
-int main(int argc, char *argv[])
+int main(void)
 {
-	HANDLE	hFileW, hFileR;
-	DWORD	dwRead, dwWritten;
-	char	cBufRead[BUFSIZE];
+	HANDLE  hFileR;
+	DWORD	dwRead, dwSetted;
+	char	cBufRead[BUFSIZE+1];
 	
-	if (argc != 3)																											/* errno donmedigi icin ExitSys yapilamaz */
-	{
-		fprintf(stderr, "Yanlis arguman sayisi\n");
-		exit(EXIT_FAILURE);
-	}
 
 
-	if ((hFileW = CreateFile(argv[1], GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL)) == INVALID_HANDLE_VALUE)
-		ExitSys("CreateFile Write");
-	if ((hFileR = CreateFile(argv[2], GENERIC_READ,  0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
+	if ((hFileR = CreateFile("Test.txt", GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
 		ExitSys("CreateFile Read");
 
 	
+	if ( (dwSetted=SetFilePointer(hFileR, SuKadarByteKaydir, NULL, FILE_BEGIN)) != SuKadarByteKaydir)
+		ExitSys("SetFilePointer");
+
+
 	for (;;)
 	{
 		if (!ReadFile(hFileR, cBufRead, BUFSIZE, &dwRead, NULL))
 			ExitSys("ReadFile");
 
-			if (!WriteFile(hFileW, cBufRead, dwRead, &dwWritten, NULL) )													/* Eger dosyaya yazilirken hata olusmussa */
-				ExitSys("WriteFile");
-
 		if (dwRead == 0 )																									/* Eger okunacak dosya sonuna gelinmisse donguden cik */
 			break;
 
-		if (dwWritten != dwRead)																							/* Eger okunan kadar yazilamamissa exit yap. errno donmedigi icin ExitSys yapilamaz */
-		{
-			fprintf(stderr, "Yanlis arguman sayisi\n");	
-			exit(EXIT_FAILURE);
-		}
+		cBufRead[dwRead] = '\0';
+		printf("%s", cBufRead);
 	}
-
-
-	puts("Okunan dosyanin yazilmasi gerceklesmistir.");
-
-	CloseHandle(hFileW);																									/* CloseHandle ile Handle'in gosterdigi dosyalar kullanici tarafindan yazilmasa da */
+	
+																															/* CloseHandle ile Handle'in gosterdigi dosyalar kullanici tarafindan yazilmasa da */
 	CloseHandle(hFileR);																									/* Isletim sistemi tarafindan zaten kapatilacaktir. */
 
 	return 0;
@@ -83,12 +71,17 @@ void ExitSys(LPCSTR lpszMsg)
 
 
 /****************************************************** Others
-	----------CALISTIRMA ORNEGI
-	!!!!! Program arguman alarak calismaktadir. Alinan ilk arguman yazilacak dosya, ikinci arguman ise okunacak dosya olarak girilmelidir. !!!!!
+	-----------------CALISTIRMA ORNEGI
+	SetFilePointer fonksiyonu ile okunan "Test.txt" dosyasinda belirlenen deger kadar dosya göstericisi kaydirilmistir ve sonrasinda dosyadan okuma yapilmistir.
 
 
 
-	--- CreateFile Ornegi ---
+
+
+
+
+
+	--------- CreateFile Ornegi ---------
 	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
 
 	HANDLE WINAPI CreateFile(
@@ -115,7 +108,7 @@ void ExitSys(LPCSTR lpszMsg)
 	- Ayni anda ayni dosyaya birden fazla kez create islemi yapilamaz, hata verir. Farkli dosyalar icin yapilabilir.
 
 
-	--- ReadFile Ornegi ---
+	--------- ReadFile Ornegi ---------
 	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-readfile
 
 	BOOL WINAPI ReadFile(
@@ -134,7 +127,7 @@ void ExitSys(LPCSTR lpszMsg)
 	To get extended error information, call the GetLastError function.
 
 
-	--- WriteFile Ornegi ---
+	--------- WriteFile Ornegi ---------
 	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-writefile
 
 	BOOL WINAPI WriteFile(
@@ -146,9 +139,32 @@ void ExitSys(LPCSTR lpszMsg)
 						
 							);
 
+	--------- SetFilePointer ---------
+	https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfilepointer
+
+	DWORD WINAPI SetFilePointer(
+								HANDLE hFile,
+								LONG lDistanceToMove,
+								PLONG lpDistanceToMoveHigh,
+								DWORD dwMoveMethod
+								);
+
+				     Windows		   Linux
+	Işlemci			32		64		32		64	
+	-------------------------------------------
+	int				4		4		4		4	BYTE
+	short			2		2		2		2	BYTE
+	long			4		4		4		8	BYTE
+	
+	Windowsta tanımlanabilecek maksimum işaretli tamsayı değeri(long) 4byte’dır. Yani bir değişken ile yazılabilecek en büyük işaretli tamsayı 2GB’dır.
+	
+	Fakat bir dosya 2GB’dan büyük olabilir. Bu durumda “SetFilePointer” ile konumlandırı 2GB’dan ileriye konumlandırılmak istenirse 4Byte’lık tek bir değişkenle konumlandırılamaz. Bu soruna karşılık “lpDistanceToMoveHigh” parametresi bulunmaktadır. Fonksiyon kullanıcıdan 2 ayrı 32 bit istemektedir. Bu parametre “lDistanceToMove” konumlandırılacak yerin low kısmı, “lpDistanceToMoveHigh” parametresi ise konumlandırılacak yerin high kısmıdır.
+	Ayrıca Fonksiyon çıkışta da konumlandırılan yeri döneceği için, fonksiyonun return değeri alçak(low) 4 byte’ı, lpDistanceToMoveHigh parametresi ise yüksek(High) Byte’ı gösterir. Eğer 2GB’dan fazla yazılmayacaksa bu paramertre NULL geçilebilir.
+
+	NTFS dosya sistemlerinde, dosya konumlandırıcısı, dosyanın sonundan ileriye konumlandırılabilir. Bu geçerlidir. Aşağıda açıklanıyor.Bu tür durumlarda dosyaya yazma yapıldığında dosya deliği (file hole) oluşur
 
 
-	--- CloseHandle ---
+	--------- CloseHandle ---------
 
 	https://docs.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle
 	- BOOL CloseHandle(HANDLE) fonksiyonu, Sadece dosyayi değil, kernel nesnelerini de ortak olarak kapatir.
