@@ -23,14 +23,19 @@ int main(int argc, const char *argv[])
 	if ( (fd=open(argv[1], O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1 )
 		exit_sys("open");
 		
-	/* Butun dosya okunmak istenirse, dosyanin uzunlugu bilinmeyecegi icin sonsuz dongu icinde return degeri = 0 olana kadar okuma yapilabilir */
-	if ( (resR = read(fd, bufR, ByteSizeRead)) == -1 )
+	
+	for (;;)
+	{
+		if ( (resR = read(fd, bufR, 1)) == -1 )
 		exit_sys("read");
 
-	bufR[resR] = '\0';
-	printf("%s", bufR);
+		if (resR == 0)
+		break;
 
-	printf("\nOkunan byte sayisi = %ld\n", resR);
+		bufR[resR] = '\0';
+		printf("%s", bufR);
+	}
+	
 
 	puts("Success");
 
