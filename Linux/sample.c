@@ -3,21 +3,36 @@
 #include "fcntl.h"									/* open icin, File Control */
 #include "errno.h"									/* errno icin */
 #include "sys/stat.h"								/* S_I... parametreleri icin */
+#include "unistd.h"									/* read ve write icin */ 
 
 
+//********************************** Define
+#define ByteSizeRead		4096
+
+//********************************** Function Prototypes
 void exit_sys(const char *msg);						
+
 
 
 int main(int argc, const char *argv[])
 {
-	int fd;
+	int     fd;
+	char    bufR[ByteSizeRead+1];
+	ssize_t resR;
 
-	if ( (fd=open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1 )
+	if ( (fd=open(argv[1], O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1 )
 		exit_sys("open");
 		
+	/* Butun dosya okunmak istenirse, dosyanin uzunlugu bilinmeyecegi icin sonsuz dongu icinde return degeri = 0 olana kadar okuma yapilabilir */
+	if ( (resR = read(fd, bufR, ByteSizeRead)) == -1 )
+		exit_sys("read");
 
+	bufR[resR] = '\0';
+	printf("%s", bufR);
 
-	puts("OK");
+	printf("\nOkunan byte sayisi = %ld\n", resR);
+
+	puts("Success");
 
 	return 0;
 }
@@ -37,8 +52,65 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
  * ./sample <dosya ismi>
  * 
  ******************************************************************************************************************************************************
-	#include <fcntl.h>				//File Control
+	---------------------------------------------------- R E A D ----------------------------------------------------
+	#include <unistd.h>     // standard symbolic constants and types 
 
+    ssize_t read(int fd, void *buf, size_t count);
+
+	Param:
+	------	
+	int fd      	---> File descriptor
+	void *buf   	---> Dosyadan okunup doldurulacak olan buffer
+	size_t count	---> Okunacak olan byte sayisi
+
+	Dosya gostericisinin bulundugu yerden itibaren verilen byte sayisi kadar belirtilen dosyadan okuma yapar ve buf'i doldurur.
+	read() attempts to read up to count bytes from file descriptor fd into the buffer starting at buf.
+
+	Return:
+	-------
+	Okyabildigi byte sayisina geri doner. Ornegin verilen byte sayisi kadar okunmus, dosya sonlanmis ve hala okunacak byte sayisina ulasilamamissa bu bir hata 
+	degildir. 	
+	Eger ornegin bir dosya 100byte olsun ve dosya gostericisi de 50.byte'da yer alsın. Eger dosyadan 100Byte okunmak istenirse fonksiyonun donus degeri okuyabildigi
+	byte sayisi olan 50 olacaktir. Cunku EOF ile karsilasmis, dosyanin sonuna gelmistir.
+
+	   On success, the number of bytes read is returned (zero indicates
+       end of file), and the file position is advanced by this number.
+	   On error, -1 is returned, and errno is set to indicate the error.
+       In this case, it is left unspecified whether the file position
+       (if any) changes.
+
+       It is not an error if this number is smaller than the number of
+       bytes requested; this may happen for example because fewer bytes
+       are actually available right now (maybe because we were close to
+       end-of-file, or because we are reading from a pipe, or from a
+       terminal), or because read() was interrupted by a signal.  See
+       also NOTES.
+
+
+	---------------------------------------------------- W R I T E ----------------------------------------------------
+	#include <unistd.h>     // standard symbolic constants and types 
+
+    ssize_t write(int fd, const void *buf, size_t count);
+
+	Param:
+	------	
+	int fd      	---> File descriptor
+	void *buf   	---> Dosyadan okunup doldurulacak olan buffer
+	size_t count	---> Okunacak olan byte sayisi
+
+	Dosya gostericisinin bulundugu yerden itibaren verilen byte sayisi kadar belirtilen dosyaya belirtilen buf'i yazar.
+	write() writes up to count bytes from the buffer starting at bufto the file referred to by the file descriptor fd.
+
+	Return:
+	-------
+	Yazabildigi byte sayisina geri doner. 
+
+		On success, the number of bytes written is returned.  On error,
+       -1 is returned, and errno is set to indicate the error.
+
+	---------------------------------------------------- O P E N ----------------------------------------------------
+	#include <fcntl.h>				//File Control
+	 
 	int open(const char *pathname, int flags);
     int open(const char *pathname, int flags, mode_t mode);
 
