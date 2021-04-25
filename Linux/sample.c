@@ -6,15 +6,14 @@
 void exit_sys(const char *msg);						
 
 
-int main(void)
+int main(int argc, const char *argv[])
 {
+	int fd;
 
-	int result;
-	
-	if ( (result = open("test.txt", O_RDONLY)) == -1)
-	{
-		exit_sys("open fail");
-	}
+	if ( (fd=open(argv[1], O_RDWR | O_CREAT )) == -1 )
+		exit_sys("open");
+		
+
 
 	puts("OK");
 
@@ -32,21 +31,42 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
 
 /****************************************************** Others
  * KOD CALSTIRMA ORNEGI:
- * gcc -o sample sample.c 
- * ./sample
+ * gcc -Wall -o sample sample.c 
+ * ./sample <dosya ismi>
  * 
  ******************************************************************************************************************************************************
+	#include <fcntl.h>
+
+	int open(const char *pathname, int flags);
+    int open(const char *pathname, int flags, mode_t mode);
+
+	Aslinda fonksiyonun gercek prototipi;
+		int open(const char *pathname, int flags, ...); 
+	seklindedir. Buradaki "..." isareti, koyuldugu yerden sonra fonksiyonun birden cok parametre alabilecegi anlamina gelmektedir. "printf(, ...)" de buna ornektir.
+
+	Return:
+		On success, open() return the new file descriptor (a nonnegative integer).  On error, -1 is returned and
+    errno is set to indicate the error.
+
 	ornek olarak "open" POSIX fonksiyonu kullanilmistir. Bu fonksiyonda hata olmasi durumunda Normal bir POSIX fonksyionu gibi "-1",
-	barasili olmasi durumunda ise "0" degerini dondurur. Fakat bazı adres donen POSIX fonksiyonlari hata durumunda NULL da donebilmektedir.
+	basarili olmasi durumunda ise "0" degerini dondurur. Fakat bazı adres donen POSIX fonksiyonlari hata durumunda NULL da donebilmektedir.
 
-	Bu durumda "open" fonksiyonu kendi icerisinde "errno" degiskenini doldurur. Doldurulan bu sayısal deger bir hata koduna denk gelmektedir.
-	Bu hata kodu ise "strerror(errno)" fonksiyonuyla yapilmaktadir. Bu fonksiyon errno giris parametresini alarak ilgili hata kodunun adresini
-	doner, biz de bu adresi string olarak yazdiririz.
+	Bu durumda "open" fonksiyonu kendi icerisinde "errno" degiskenini doldurur. 
 
-	Bir adimd daha ileri gidilmis olan "perror" yani acilimiyla printerror fonksiyonu, aldigi parametreyi ekrana yazdirir. Sonrasina ":" koyar ve sonrasinda ise 
-	hatayi yazdirir. Bu fonksiyon "stdio.h" icerisindedir. Yani Standart C fonksiyonudur.
+	
+	open fonksiyonun 2.parametresi için;
 
-	Hata yazdirma ve exit yapma islemi tek fonksiyonda toplanmistir.
+	Aşağıdakilerden yalnızca birisi muhakkak kullanılmalıdır.
+	O_RDONLY		:Yalnızca okuma
+	O_WRONLY		:Yalnızca yazma
+	O_RDWR			:Yazma + Okuma
+
+	Aşağıdaki flagler ile yukarıda belirtilen flagler OR'lanarak dosya üzerinde aşağı belirtilenler yapılabilir. Aşağıdaki flagler kendi içinde de OR'lanabilir;
+	O_CREAT			:Yoksa yarat, varsa aç 
+	O_TRUNC 		:Dosya açılırken silinsin.
+	O_EXCL			:Dosya varsa basarisiz ol. O_EXCL tek başına kullanılamaz ancak O_CREAT ile birlikte kullanılabilmektedir.
+	O_APPEND		:Dosyadan okuma veya yazma yapilabilir ancak her yazma sonrasi dosya gostericisi dosyanin sonuna konumlanir. 
+					 Yani her write islemi dosya sonuna yazilir.
 
 
 
