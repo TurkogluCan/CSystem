@@ -4,7 +4,7 @@
 #include "errno.h"									/* errno icin */
 #include "sys/stat.h"								/* S_I... parametreleri icin */
 #include "unistd.h"									/* read ve write icin */ 
-
+#include "getopt.h"
 
 //********************************** Define
 #define ByteSizeRead		4096
@@ -14,30 +14,125 @@ void exit_sys(const char *msg);
 
 
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
-	int     fd;
-	char    bufR[ByteSizeRead+1];
-	ssize_t resR;
+	int result, resAcc;
+	int flag_n= 0, flag_i= 0, flag_err = 0;
 
-	if ( (fd=open(argv[1], O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1 )
-		exit_sys("open");
-		
+	int index;
+	int fdr, fdw; 
+	size_t  cntReaded;
+	size_t  cntWrited;
+	char 	buf[ByteSizeRead+1];
 	
-	for (;;)
+	struct option options[] = 
 	{
-		if ( (resR = read(fd, bufR, 1)) == -1 )
-		exit_sys("read");
-
-		if (resR == 0)
-		break;
-
-		bufR[resR] = '\0';
-		printf("%s", bufR);
-	}
+		{"interactive",  no_argument,  NULL,  'i' },
+		{"no-clobber", 	 no_argument,  NULL,  'n' },
+		{0,0,0,0}
+	};
 	
 
-	puts("Success");
+	opterr = 0;
+
+	while ( (result = getopt_long(argc, argv, "in", options, &index)) != -1 )				    
+	{											
+		switch (result)
+		{
+			case 'i':											
+
+				flag_i = 1;
+				break;
+
+			case 'n':							
+
+				flag_n = 1;
+				break;
+			
+			case '?':	/* Invalid option */
+
+				if (optopt != 0)
+					fprintf(stderr, "Invalid option.\n");
+				else
+					fprintf(stderr, "Invalid long option.\n");
+				flag_err = 1;
+				break;
+
+			default:
+				break;
+		}
+	} 
+
+	if (flag_err)														/* Hatali secenek girisi varsa programdan cikar */
+		exit_sys("Hatali secenek girisi");
+
+	
+	resAcc = access(argv[optind + 1], F_OK); 
+
+	if ( ((flag_n && flag_i) || flag_n) )
+	{
+		if (resAcc!=-1)
+		{
+			fprintf(stderr,"Bu modda var olan dosya uzerine yazilamaz.\n");
+			exit(EXIT_FAILURE);
+		}
+		else
+		{
+				if( (fdr=open(argv[optind], O_RDONLY)) == -1)
+					exit_sys("open -n");
+
+				if( (fdw=open(argv[optind+1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP| S_IROTH)) == -1)
+					exit_sys("open -n");
+
+				for (;;)
+				{
+					if ( (cntReaded = read(fdr, buf, 1)) == -1 )
+						exit_sys("read -n");
+
+					if (cntReaded == 0)
+					break;
+					
+					if ( (cntWrited=write(fdw, buf, cntReaded)) == -1 )
+						exit_sys("write -n");
+				}
+		}
+	}
+	else
+	{
+		if (resAcc != -1)												/* Dosya varsa */
+		{
+			char scaned;
+			puts("Var olan bir dosya uzerine kopyalamaya devam etmek istiyor musunuz? (y/n)");
+			scanf("%c", &scaned);
+
+			if (scaned != 'y' )
+				exit_sys("y girmedin");
+			else
+			{
+				if( (fdr=open(argv[optind], O_RDONLY)) == -1)
+					exit_sys("open -i");
+
+				if( (fdw=open(argv[optind+1], O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU)) == -1)
+					exit_sys("open -i");
+
+				for (;;)
+				{
+					if ( (cntReaded = read(fdr, buf, 1)) == -1 )
+						exit_sys("read -i");
+
+					if (cntReaded == 0)
+					break;
+					
+					if ( (cntWrited=write(fdw, buf, cntReaded)) == -1 )
+						exit_sys("write -i");
+				}
+			}
+		}
+
+
+
+		
+	}
 
 	return 0;
 }
@@ -53,10 +148,25 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
 
 /****************************************************** Others
  * KOD CALSTIRMA ORNEGI:
- * gcc -Wall -o sample sample.c 
- * ./sample <dosya ismi>
+ * gcc -Wall -o mycp mycp.c 
+ * ./mycp <arguman> <kaynak dosya ismi> <hedef dosya ismi>
  * 
+ * ./mycp test.txt mest.txt -n -i
+	Bu modda var olan dosya uzerine yazilamaz.
+
+	./mycp test.txt xxxest.txt -n
+
+	./mycp  test.txt mest.txt -i
+	Var olan bir dosya uzerine kopyalamaya devam etmek istiyor musunuz? (y/n)
+	y
+
+
+	Kendi dosya kopyalama fonksiyonumu yaptik. Girilecek olan -i(--interactive) ve -n(no-clobber) argumanlari ile kaynak dosyanin okunup hedef dosyaya
+	yazdirilma islemi gerceklestirilmistir. 
  ******************************************************************************************************************************************************
+	
+	
+	
 	---------------------------------------------------- R E A D ----------------------------------------------------
 	#include <unistd.h>     // standard symbolic constants and types 
 
