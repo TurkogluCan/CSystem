@@ -1,7 +1,9 @@
 #include "stdio.h"									/* perror da bunun icerisindedir */
 #include "stdlib.h"									/* EXIT_FAILURE icin*/
-#include "fcntl.h"									/* open icin */
+#include "fcntl.h"									/* open icin, File Control */
 #include "errno.h"									/* errno icin */
+#include "sys/stat.h"								/* S_I... parametreleri icin */
+
 
 void exit_sys(const char *msg);						
 
@@ -10,7 +12,7 @@ int main(int argc, const char *argv[])
 {
 	int fd;
 
-	if ( (fd=open(argv[1], O_RDWR | O_CREAT )) == -1 )
+	if ( (fd=open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1 )
 		exit_sys("open");
 		
 
@@ -35,7 +37,7 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
  * ./sample <dosya ismi>
  * 
  ******************************************************************************************************************************************************
-	#include <fcntl.h>
+	#include <fcntl.h>				//File Control
 
 	int open(const char *pathname, int flags);
     int open(const char *pathname, int flags, mode_t mode);
@@ -68,6 +70,57 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
 	O_APPEND		:Dosyadan okuma veya yazma yapilabilir ancak her yazma sonrasi dosya gostericisi dosyanin sonuna konumlanir. 
 					 Yani her write islemi dosya sonuna yazilir.
 
+
+	open fonksiyonun 3.parametresi, dosyanin erisim haklarini belirlemektedir. 
+	O_ parametreleri #include <fcntl.h> kutuphanesinde bulunmasina ragmen S_I parametreleri asagidaki kutuphanede bulunmaktadir;
+	#include <sys/stat.h>
+
+	!!!!!! Eger dosya zaten yaratilmişsa erişim haklarına girilmesi anlamsız olur. Bu sabitlerin kullanilmasinin anlamli olabilmesi icin
+	yeni bir dosya yaratilmasi gerekmektedir. Yeni dosya yaratilirken verilen sembolik sabitlerdeki erisim haklarina sahip dosya yaratilmaktadir. Olan bir
+	dosyanin erisim haklarini degistirmez !!!!!! Bu yuzden 3.parametre kullanilacaksa 2.paremetrede "O_CREAT" kullanilmasi anlamli olur. 
+	
+	Erisim haklarini belirlemede kullanilan sembolik sabitler;
+
+	S_IRUSR
+	S_IWUSR
+	S_IXUSR
+
+	S_IRGRP
+	S_IWGRP
+	S_IXGRP
+
+	S_IROTH
+	S_IWOTH
+	S_IXOTH
+
+	Ayrıca bu sembolik sabitlerin dışında aşağıdaki üç sembolik sabit de bulunmaktadır:
+
+  	S_IRWXU
+	S_IRWXG
+	S_IRWXO
+
+	Bu sembolik sabitler aslında aşağıdakilerle eşdeğerdir:
+
+	#define S_IRWXU (S_IRUSR|S_IWUSR|S_IXUSR)
+	#define S_IRWXG (S_IRGRP|S_IWGRP|S_IXGRP)
+	#define S_IRWXO (S_IROTH|S_IWOTH|S_IXOTH)
+
+
+
+	Bu sembolik sabitlerin hepsinin başının S_I ile başladığına dikkat ediniz. Bunu R, W ve X harfleri, bunu da USR, GRP ya da OTH karakterleri izlemektedir. 
+
+	Ornek olarak;
+					S_I R USR
+						W GRP
+						X OTH
+
+	Bu sembolik sabitler OR'lanarak kullanilabilmektedir. Ornegin;
+
+	S_IRUSR | S_IWUSR   ---> Sadece User icin Read ve Write hakki verilmis, Group ve Other icin erisim hakkı verilmemis.
+	Bu durumda erisim haklari -r-------- seklinde olacaktir. 
+
+	S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH   ---> User icin okuma ve yazma, group ve other icin sadece okuma hakkı verilmistir.
+	Bu durumda erisim haklari -rw-r--r-- seklinde olacaktir. 
 
 
 ******************************************************************************************************************************************************
