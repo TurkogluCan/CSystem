@@ -1,2 +1,0 @@
-C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Matrix\Debug\Matrix.exe
-C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Matrix\Debug\Matrix.pdb
