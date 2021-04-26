@@ -128,11 +128,10 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-
-
-
-		
 	}
+
+	close(fdr);
+	close(fdw);
 
 	return 0;
 }
@@ -163,6 +162,7 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
 
 	Kendi dosya kopyalama fonksiyonumu yaptik. Girilecek olan -i(--interactive) ve -n(no-clobber) argumanlari ile kaynak dosyanin okunup hedef dosyaya
 	yazdirilma islemi gerceklestirilmistir. 
+	close fonksiyonu kullanilarak dosya kapatilmistir.
  ******************************************************************************************************************************************************
 	
 	
@@ -222,6 +222,51 @@ void exit_sys(const char *msg)						/* Hatali durumlar icin girilen uyari mesaji
 
 		On success, the number of bytes written is returned.  On error,
        -1 is returned, and errno is set to indicate the error.
+
+
+	---------------------------------------------------- L S E E K ----------------------------------------------------
+	#include <unistd.h>     // standard symbolic constants and types 
+
+	off_t lseek(int fildes, off_t offset, int whence);
+
+	Param:
+	------	
+	int fildes      ---> File descriptor
+	off_t offset    ---> Konumlandirma ofseti (<0 ise bulunulan yerden geriye >=0 ise ileriye dogru gidilir.)
+	int fildes      ---> Konumlandirma orjini
+
+	Konumlandirma orjinine kadar belirtilen offset degeri kadar fildes'in gosterdigi dosya uzerinde imlec konumlandirilir.
+
+	lseek - move the read/write file offset. 
+	
+	The lseek() function shall set the file offset for the open file description associated with the file descriptor fildes, as follows:
+		If whence is SEEK_SET, the file offset shall be set to offset bytes and offset must be positive number. 
+		If whence is SEEK_CUR, the file offset shall be set to its current location plus offset.
+		If whence is SEEK_END, the file offset shall be set to the size of the file plus offset.
+	The symbolic constants SEEK_SET, SEEK_CUR, and SEEK_END are defined in <unistd.h>.
+
+	Return:
+	-------
+	Upon successful completion, the resulting offset, as measured in bytes from the beginning of the file, shall be returned. 
+	Otherwise, (off_t)-1 shall be returned, errno shall be set to indicate the error, and the file offset shall remain unchanged.
+
+
+	---------------------------------------------------- C L O S E ----------------------------------------------------
+	#include <unistd.h>     // standard symbolic constants and types 
+
+	int close(int fildes);
+
+	Param:
+	------	
+	int fildes      ---> File descriptor
+
+	Eger girilen file descriptor parametresi duzgunse cok yuksek ihtimalle dosya hatasiz bir sekilde kapatilacaktir. Eger
+	dosya kapatilamazsa isletim sisteminde hata vardir. Bu durumda bir sey yapilamayacagi icin hata kontrolune gerek yoktur.
+
+	Return:
+	-------
+	Upon successful completion, 0 shall be returned; otherwise, -1 shall be returned and errno set to indicate the error.
+
 
 	---------------------------------------------------- O P E N ----------------------------------------------------
 	#include <fcntl.h>				//File Control
