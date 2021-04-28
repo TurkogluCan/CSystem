@@ -4,8 +4,6 @@
 #include "errno.h"									/* errno icin */
 #include "sys/stat.h"								/* S_I... parametreleri icin */
 #include "unistd.h"									/* read ve write icin */ 
-#include "getopt.h"
-
 //********************************** Define
 
 
@@ -19,11 +17,20 @@ void exit_sys(const char *msg);
 
 int main(void)
 {
-	// Ornegin imlec 10,10 pozisyonuna gitsin;
-	printf("\e[10;10H"); 
-	
-	// Set style to bold, red background.
-	printf("\x1B[1;41mHello\n");
+
+	int fd;
+
+	/* umask(S_IWUSR|S_IWOTH);		default umask, kabuk maskesi. Belki degisebilir de. Farkli konsol umask degerleri icin dosya erisim haklarini
+									gozlemle. Dosya erisim haklarinin degismesi icin dosyanin yaratilmasi gerekmekte. */
+
+	umask(0);
+
+	if ((fd = open("umask_test.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1)
+		exit_sys("open");
+
+	close(fd);
+
+	printf("OK\n");
 
 	return 0;
 }
@@ -52,25 +59,25 @@ void exit_sys(const char *msg)
  * 
  ******************************************************************************************************************************************************
 	
-	---------------------------------------------------- A N S I  E S C A P E  C O D E ----------------------------------------------------
-	https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-
-	ANSI escape kodlari, ekrana ozel bazi karakterler, renkli yazma, cursor tasima vs. islemlerini printf ile yapmaktadir. Bu kodlar printf'e string
-	karakter girisi ile kullanilir. 
-
-	ESC = \e = \x1B
-		
-
-	ESC[{line};{column}H  -->  moves cursor to line #, column # 
+	---------------------------------------------------- U M A S K ----------------------------------------------------
 	
-	Ornegin imlec 10,10 pozisyonuna gitsin;
-		printf("\e[10;10H"); 
+		!!! UMASK SADECE ERİŞİM HAKLARINI MASKELEMEKTEDİR. UMASK İLE ERİŞİM HAKLARI DEĞİŞTİRİLMEZ, MASKELENİR !!!
+	
+	UNIX/Linux sistemlerinde open fonksiyonun üçüncü parameresinde verilen erişim hakları nihai durumu belirtmemektedir. Nihai durum üçüncü
+	parametrede belirtilen erişim haklarının prosesin umask değeri ile işleme sokulmasıyla belirlenir. umask değerindeki set edilen bayraklar 
+	open fonksiyınunda belirtilse bile dikkate alınmayacak hakları belirtir. open dışında bazı diğer yaratıcı POSIX fonksiyonları da umask değerini
+	dikkate almaktadır. umask değeri üst prosesten alt prosese aktarılmaktadır. Shell prosesinin default umask değeri 022'dir. (Yani S_IWUSR|S_IWGRP)
+	Proses kendi umask değerini umask isimli POSIX fonksiyonuyla değiştirebilemketdri 
+
+		#incude <sys/stat.h>
+		
+		mode_t umask(mode_t mask);
+
+	Aşağıdaki programda prosesin umask değeri 0 yapılarak maske ortadan kaldırılmıştır. 
+
+	Shell prosesinin umask değeri umask shell komutuyla alınıp değiştirilebilmektedir.
 
 
-	\x1b[1;31m            -->  Set style to bold, red foreground.
-		printf("\e[1;31mHello\n");
-
-	\x1b[1;41m            -->  Set style to bold, red background.
-		printf("\e[1;41mHello\n");
+	EGER ISTENIRSE DOSYA ERISIM HAKLARI "chmod" ile degistirilebilmektedir.
 ******************************************************************************************************************************************************
 */
