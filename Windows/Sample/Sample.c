@@ -10,19 +10,9 @@ void ExitSys(LPCSTR lpszMsg);
 int main(void)
 {
 
-	/* Windows case sensitive degildir. Bu yuzden dosya isimlerindeki buyuk kucuk harfler
-	   sorun yasatmaz. Unix Linux case sensitivedir.
-
-	   Eger bFailIfExists = TRUE ise;
-		Kaynak uzantidaki dosyayi, hedefteki dosyayi yaratir ve dosyaya kopyalar.
-		Eger hedef dosya varsa hata verir.
-
-	   Eger bFailIfExists = FALSE ise;
-		Kaynak uzantidaki dosyayi, hedefteki dosya var ise siler kopyalar, yoksa yaratir kopyalar.
-	    
-	   */
-	if ( !CopyFile("mest.txt", "TesT.Txt", FALSE) )
-		ExitSys("CopyFile");
+	/* mest.txt dosyasinin dizin bilgileri movedMest.txt olarak degistirilir. */
+	if ( !MoveFile("mest.txt", "movedMest.Txt") )
+		ExitSys("MoveFile");
 
 	printf("OK\n");
 
@@ -57,27 +47,28 @@ void ExitSys(LPCSTR lpszMsg)
 
 
 /****************************************************** Others
-	-----------------CALISTIRMA ORNEGI
-
-
- ******************************************************************************************************************************************************
  
- --------------------------------------------------------------------- C O P Y  F I L E ---------------------------------------------------------- 
+	!!!
+	Taşıma demek, dataları kopyalamak değil, dizin girişini silerek başka bir dizin içerisinde burayı referans eden bir dizin yaratmak demek.
+	Dosyanın erişmek için gereken path’i değiştirilir, dosya içeriği değiştirilmez. Aslında dosyanin isim değişikliği de dosya taşımayla yapılmaktadır. 
+	!!!
 
-	Copies an existing file to a new file.
+ --------------------------------------------------------------------- M O V E  F I L E ---------------------------------------------------------- 
+
+	Bir dosyayı yeni bir konuma taşır.
 	
-	BOOL CopyFile(
-					LPCTSTR lpExistingFileName,
-					LPCTSTR lpNewFileName,
-					BOOL    bFailIfExists
-				 );
+	BOOL MoveFile(
+				  LPCTSTR lpExistingFileName,
+				  LPCTSTR lpNewFileName
+				);
 	
 	PARAM:
 	-----
-	lpExistingFileName    --> The name of an existing file. 
-	lpNewFileName         --> The name of the new file.
-	bFailIfExists         --> If this parameter is TRUE  and the new file specified by lpNewFileName already exists, the function fails. 
-							  If this parameter is FALSE and the new file already exists, the function overwrites the existing file and succeeds.
+	lpExistingFileName      --> The current name of the file or directory on the local computer. Must be exist.
+	lpNewFileName           --> The new name for the file or directory. The new name must not already exist. 
+								A new file may be on a different file system or drive.
+								A new directory must be on the same drive.
+								Yani dosya başka bir drive(disk)'e taşınabilir fakat bir dizin başka bir drive'a taşınamaz.
 
 	RETURN:
 	------
