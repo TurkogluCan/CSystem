@@ -10,12 +10,19 @@ void ExitSys(LPCSTR lpszMsg);
 int main(void)
 {
 
-	
-	if (!DeleteFile("x.txt"))
-		ExitSys("DeleteFile");
+	/* Windows case sensitive degildir. Bu yuzden dosya isimlerindeki buyuk kucuk harfler
+	   sorun yasatmaz. Unix Linux case sensitivedir.
 
-	//if (remove("xsds.txt"))
-	//	ExitSys("remove");
+	   Eger bFailIfExists = TRUE ise;
+		Kaynak uzantidaki dosyayi, hedefteki dosyayi yaratir ve dosyaya kopyalar.
+		Eger hedef dosya varsa hata verir.
+
+	   Eger bFailIfExists = FALSE ise;
+		Kaynak uzantidaki dosyayi, hedefteki dosya var ise siler kopyalar, yoksa yaratir kopyalar.
+	    
+	   */
+	if ( !CopyFile("mest.txt", "TesT.Txt", FALSE) )
+		ExitSys("CopyFile");
 
 	printf("OK\n");
 
@@ -52,34 +59,30 @@ void ExitSys(LPCSTR lpszMsg)
 /****************************************************** Others
 	-----------------CALISTIRMA ORNEGI
 
-	
 
  ******************************************************************************************************************************************************
  
- --------------------------------------------------------------------- D E L E T E  F I L E ---------------------------------------------------------- 
+ --------------------------------------------------------------------- C O P Y  F I L E ---------------------------------------------------------- 
 
-	Deletes an existing file. To perform this operation as a transacted operation, use the DeleteFileTransacted() function. The syntax is:
+	Copies an existing file to a new file.
 	
-	BOOL DeleteFile( LPCSTR lpFileName );
+	BOOL CopyFile(
+					LPCTSTR lpExistingFileName,
+					LPCTSTR lpNewFileName,
+					BOOL    bFailIfExists
+				 );
 	
-	RETURN:
-	------
-	If the function succeeds, the return value is nonzero and 
-	if the function fails, the return value is zero (0). To get extended error information, call GetLastError().
-
-
-  --------------------------------------------------------------------- R E M O V E ----------------------------------------------------------
-	
-	---> Aslinda "remove" fonksiyonu da kendi icerisinde "DeleteFile" Windows API'sini cagirmaktadir. Yani remove ust, DeleteFile alt katman fonksiyonudur.
-
-	In the C Programming Language, the remove function removes a file pointed to by filename.
-	
-	#include <stdio.h>
-	int remove(const char *filename);
+	PARAM:
+	-----
+	lpExistingFileName    --> The name of an existing file. 
+	lpNewFileName         --> The name of the new file.
+	bFailIfExists         --> If this parameter is TRUE  and the new file specified by lpNewFileName already exists, the function fails. 
+							  If this parameter is FALSE and the new file already exists, the function overwrites the existing file and succeeds.
 
 	RETURN:
 	------
-	The remove function returns zero is successful, otherwise nonzero.
+	If the function succeeds, the return value is nonzero.
+	If the function fails, the return value is zero. To get extended error information, call "GetLastError".
 
 ******************************************************************************************************************************************************
 */
