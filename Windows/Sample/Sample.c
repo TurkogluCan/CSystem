@@ -1,4 +1,5 @@
 ﻿#include "stdio.h"
+#include "stdlib.h"
 #include "windows.h"
 
 
@@ -8,40 +9,38 @@ void ExitSys(LPCSTR lpszMsg);
 
 int main(void)
 {
-	/* Ekrana bir yazi yazidirlmadan once veya bir yazi okunmadan once Console ve
-	   Editor karakter encodinglerinin ayni almasi gerekmektedir. 
-	   Bu ornekle beraber PC karakter kodu UTF8-65001 olarak yapilmistir. 
-	   
-	   Calisilan osyanin editordeki karakter kodu da Save as->Save/Secenekler->Save with encoding diyerek
-	   degistirilebilir. Editorun komple degistirildigi bir senecek de mevcuttur buyuk ihtimalle.
-	   
-	   Ama onemli olan sey, editor ile consolun aynı karakter encoding degerine sahip olmasi gerekmektedir.
 
-	   SetConsoleOutputCP(...) ile de konsol karakter encoing degeri gecici olarak değiştirilebilmektedir.
+	
+	if (!DeleteFile("x.txt"))
+		ExitSys("DeleteFile");
 
-	   Karakter tabloları;
+	//if (remove("xsds.txt"))
+	//	ExitSys("remove");
 
-	   1Byte'lık ve 2Byte'lık olmak uzere 2'ye ayrılır.
-
-		1Byte'lık tablolarda karakterler 1Bytedır ve birçok farklı region vs. için çeşitlidir.
-		2Byte'lık tablolarda karakterler 2Bytedır. Unicode olarak da denmektedir. Bütün dünyada aynıdır.
-		Unicode tabloda dünyanın bütün karakterleri vardır.
-
-		UTF8 Tablosu ise sıkıştırılmış Unicode tablo anlamındadır. Bu tabloda ASCII karakterler 1 byte ile kodlanir. 
-		Eger deger ASCII dışına geliyorsa bu karakter 2byte, 3byte vs kodlarınır. Bu kodlama biçimine "Multibyte kodlama" denmektedir.
-			Ornegin; 
-		
-		char text[] = "ağ";
-		printf("%u", strlen(text));
-		----> 3Byte
-
-		C Standartlarına gore ''(Orn 'x') icerisinde bir karakter alınırsa 1Byte yer kaplaması zorunlu değildir ve bu int türündendir. 
-		Fakat cpp'da ''(Orn 'x') icerisinde bir karakter alınırsa 1Byte yer kaplar ve türü char'dır. 
-	   */
-
-	printf("%c", 'Ğ');
+	printf("OK\n");
 
 	return 0;
+}
+
+
+
+void ExitSys(LPCSTR lpszMsg)
+{
+	DWORD dwLastError = GetLastError();
+	PTSTR lpszErr;
+
+	if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, dwLastError,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (PTSTR)&lpszErr, 0, NULL)) {
+		printf("%s: ", lpszMsg);
+
+		for (int i = 0; lpszErr[i] != '\n'; i++)
+			printf("%c", lpszErr[i]);
+		printf("\n");
+
+		LocalFree(lpszErr);
+	}
+
+	exit(EXIT_FAILURE);
 }
 
 
@@ -53,12 +52,34 @@ int main(void)
 /****************************************************** Others
 	-----------------CALISTIRMA ORNEGI
 
-	CMD CODPAGE DEGISTIRME ORNEGI
-	https://stackoverflow.com/questions/7432545/change-codepage-in-cmd-permanently/30100565
-
-	CMD CODPAGE DEGISTIRME UTF8 - 65001 yapilmistir.
+	
 
  ******************************************************************************************************************************************************
+ 
+ --------------------------------------------------------------------- D E L E T E  F I L E ---------------------------------------------------------- 
+
+	Deletes an existing file. To perform this operation as a transacted operation, use the DeleteFileTransacted() function. The syntax is:
+	
+	BOOL DeleteFile( LPCSTR lpFileName );
+	
+	RETURN:
+	------
+	If the function succeeds, the return value is nonzero and 
+	if the function fails, the return value is zero (0). To get extended error information, call GetLastError().
+
+
+  --------------------------------------------------------------------- R E M O V E ----------------------------------------------------------
+	
+	---> Aslinda "remove" fonksiyonu da kendi icerisinde "DeleteFile" Windows API'sini cagirmaktadir. Yani remove ust, DeleteFile alt katman fonksiyonudur.
+
+	In the C Programming Language, the remove function removes a file pointed to by filename.
+	
+	#include <stdio.h>
+	int remove(const char *filename);
+
+	RETURN:
+	------
+	The remove function returns zero is successful, otherwise nonzero.
 
 ******************************************************************************************************************************************************
 */

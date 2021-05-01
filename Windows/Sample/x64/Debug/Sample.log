@@ -1,3 +1,2 @@
 ﻿  Sample.c
-C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\Sample.c(42,15): warning C4566: character represented by universal-character-name '\u011E' cannot be represented in the current code page (1252)
   Sample.vcxproj -> C:\Users\enesc\Masaüstü\GitKrakenRepo\CSystem_Sample\CSystem\Windows\Sample\x64\Debug\Sample.exe
