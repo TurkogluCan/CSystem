@@ -1,9 +1,7 @@
 #include "stdio.h"									/* perror da bunun icerisindedir */
 #include "stdlib.h"									/* EXIT_FAILURE icin*/
-#include "fcntl.h"									/* open icin, File Control */
 #include "errno.h"									/* errno icin */
-#include "sys/stat.h"								/* S_I... parametreleri icin */
-#include "unistd.h"									/* read ve write icin */ 
+#include "sys/stat.h"								/* S_I... parametreleri ve chmod icin */
 //********************************** Define
 
 
@@ -17,18 +15,11 @@ void exit_sys(const char *msg);
 
 int main(void)
 {
+	int res;
 
-	int fd;
-
-	/* umask(S_IWUSR|S_IWOTH);		default umask, kabuk maskesi. Belki degisebilir de. Farkli konsol umask degerleri icin dosya erisim haklarini
-									gozlemle. Dosya erisim haklarinin degismesi icin dosyanin yaratilmasi gerekmekte. */
-
-	umask(0);
-
-	if ((fd = open("umask_test.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)) == -1)
-		exit_sys("open");
-
-	close(fd);
+	/* Var olan bir dosyanin erisim haklarini belirtilen gibi yapar. */
+	if( (res=chmod("deneme.txt", S_IRUSR|S_IWUSR)) == -1 )
+		exit_sys("chmod");
 
 	printf("OK\n");
 
@@ -57,27 +48,61 @@ void exit_sys(const char *msg)
  * gcc -Wall -o sample sample.c 
  * ./sample 
  * 
+   	Var olan bir dosyanin erisim haklarini belirtilen gibi yapar. 
+   		Eger dosyanin etkin kullanici id'si, programi calistiran processle 
+	ayni degilse erisim haklari degistirilemez.
+	
+		Ya etkin kullanici id'leri ayni olmali, 
+		Ya da processin etkin kullanici id'si root(0) olmalidir.
+ 
+ Ornegin;
+
+ >> sudo touch deneme.txt 
+ komutu ile programin calistirilma dizininde, daha onceden olmayan bir "deneme.txt" dosyasi yaratin.
+ 
+ >> ls -l deneme.txt 
+ komutu ile deneme.txt dosyasinin etkin user id'sinin "root" olduğunu görün.
+
+ sample.c programindaki chmod fcn ornek olarak "chmod("deneme.txt", S_IRUSR|S_IWUSR)" olsun ve programi
+ >>./sample 
+ olarak calistirn.
+
+ 	Eger sudo(root) olarak yaratilan bir dosyanin erisim haklari farklı ve sıradan bir kullanıcı tarafından 
+ degistirilmek istenirse bu mümkün değildir, program hata verecektir.
+ 
+ >>sudo ./sample 
+ olarak calistir.
+
+	Eger sudo ile calistirilirsa artik processin etkin user id'si 0 olacagi icin program calisip erisim haklari
+	degistirilecektir.
+
+Fakat bu olay tam ters şekilde yapılsaydı, yani sıradan bir process dosyayi yaratsa ve root değiştirmek isteseydi,
+sikintş yaşanmayacakti. Cunku root her seyi yapabilir.
  ******************************************************************************************************************************************************
 	
-	---------------------------------------------------- U M A S K ----------------------------------------------------
+	---------------------------------------------------- c h m o d ----------------------------------------------------
 	
-		!!! UMASK SADECE ERİŞİM HAKLARINI MASKELEMEKTEDİR. UMASK İLE ERİŞİM HAKLARI DEĞİŞTİRİLMEZ, MASKELENİR !!!
+	-> chmod isimli POSIX fonksiyonu zaten var olan bir dosyanın erişim haklarını değiştirmek için kullanılır. 
+	   Change the file modes. 
 	
-	UNIX/Linux sistemlerinde open fonksiyonun üçüncü parameresinde verilen erişim hakları nihai durumu belirtmemektedir. Nihai durum üçüncü
-	parametrede belirtilen erişim haklarının prosesin umask değeri ile işleme sokulmasıyla belirlenir. umask değerindeki set edilen bayraklar 
-	open fonksiyınunda belirtilse bile dikkate alınmayacak hakları belirtir. open dışında bazı diğer yaratıcı POSIX fonksiyonları da umask değerini
-	dikkate almaktadır. umask değeri üst prosesten alt prosese aktarılmaktadır. Shell prosesinin default umask değeri 022'dir. (Yani S_IWUSR|S_IWGRP)
-	Proses kendi umask değerini umask isimli POSIX fonksiyonuyla değiştirebilemketdri 
+	Prototype:
+	----------
+	#include <sys/stat.h>
+	int chmod(const char *path, mode_t mode);
 
-		#incude <sys/stat.h>
-		
-		mode_t umask(mode_t mask);
+	Param:
+	------	
+	path      	---> Dosya yolu
+	mode     	---> Dosyaya verilecek olan yeni erisim haklari, S_I...
 
-	Aşağıdaki programda prosesin umask değeri 0 yapılarak maske ortadan kaldırılmıştır. 
+	Return:
+	-------
+	Yazabildigi byte sayisina geri doner. 
 
-	Shell prosesinin umask değeri umask shell komutuyla alınıp değiştirilebilmektedir.
+		On success, the number of bytes written is returned.  
+		On error, -1 is returned, and errno is set to indicate the error.
 
 
-	EGER ISTENIRSE DOSYA ERISIM HAKLARI "chmod" ile degistirilebilmektedir.
+
 ******************************************************************************************************************************************************
 */
