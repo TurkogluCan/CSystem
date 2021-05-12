@@ -2,6 +2,8 @@
 #include "stdlib.h"									/* EXIT_FAILURE icin*/
 #include "errno.h"									/* errno icin */
 #include "sys/stat.h"								/* S_I... parametreleri ve chmod icin */
+#include "fcntl.h"									/* open fcn */
+#include "unistd.h"									/* close fcn */
 //********************************** Define
 
 
@@ -12,15 +14,21 @@ void exit_sys(const char *msg);
 
 
 
-
 int main(void)
 {
-	int res;
+	int fd, res;
 
-	/* Var olan bir dosyanin erisim haklarini belirtilen gibi yapar. */
-	if( (res=chmod("deneme.txt", S_IRUSR|S_IWUSR)) == -1 )
-		exit_sys("chmod");
+	if ( (fd = open("deneme.txt", O_RDONLY | O_CREAT, S_IRUSR|S_IWUSR)) == -1 )
+		exit_sys("open");
+	
+	/* open ile acilmis veya yaratilmis olan dosyanin erisim haklarini degistirir. */
+	if ( (res=fchmod(fd,  S_IRUSR|S_IWUSR | S_IRGRP|S_IROTH)) == -1 )
+		exit_sys("fchmod");
 
+
+
+	close(fd);
+	
 	printf("OK\n");
 
 	return 0;
@@ -80,19 +88,25 @@ Fakat bu olay tam ters şekilde yapılsaydı, yani sıradan bir process dosyayi 
 sikintş yaşanmayacakti. Cunku root her seyi yapabilir.
  ******************************************************************************************************************************************************
 	
-	---------------------------------------------------- c h m o d ----------------------------------------------------
+	---------------------------------------------------- f c h m o d ----------------------------------------------------
 	
-	-> chmod isimli POSIX fonksiyonu zaten var olan bir dosyanın erişim haklarını değiştirmek için kullanılır. 
+	-> fchmod isimli POSIX fonksiyonu open ile acilmis veya yaratilmis olan bir dosyanın erişim haklarını değiştirmek için kullanılır. 
 	   Change the file modes. 
+
+	-> fchmod fonksiyonu tamamen chmod fonksiyonu gibidir. Ancak açılmış dosyanın dosya betimleyicisindne hareketle dosyanın erişim haklarını değiştirir. 
+	 Yani birisi dosyanın yolunu alır, diğeri ise file descriptor’ı alır. 
+	 Yani elimizde zaten open fonksiyonuyla açmış olduğumuz bir dosya varsa biz fchmod fonksiyonuyla bu dosyanın erişim haklarını hemen değiştirebiliriz.
+	 Bu fonksiyonun chmod fonksiyonundan daha hızlı çalışacağı varsayılabilir
 	
 	Prototype:
 	----------
 	#include <sys/stat.h>
-	int chmod(const char *path, mode_t mode);
+	int fchmod(int fd, mode_t mode);
+
 
 	Param:
 	------	
-	path      	---> Dosya yolu
+	fd      	---> File Descriptor
 	mode     	---> Dosyaya verilecek olan yeni erisim haklari, S_I...
 
 	Return:
